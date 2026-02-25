@@ -34,12 +34,6 @@ export function Header() {
           >
             Bills
           </Link>
-          <Link
-            href="/review"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-clio-blue"
-          >
-            Review
-          </Link>
         </nav>
       </div>
     </header>

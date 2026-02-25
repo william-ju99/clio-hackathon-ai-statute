@@ -34,6 +34,19 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
 
   const sectionId = bill.sectionsAffected[0];
   const statute = getStatute(sectionId);
+  const sectionChanges = useMemo(
+    () => bill.changes.filter((c) => c.sectionId === sectionId),
+    [bill.changes, sectionId]
+  );
+
+  // Build the "after" statute using only approved changes
+  const updatedStatute = useMemo(() => {
+    if (!statute) return null;
+    const approvedChanges = sectionChanges.filter(
+      (_, idx) => decisions[idx] === "approved"
+    );
+    return applyChangesToStatute(statute, approvedChanges, bill.number);
+  }, [decisions, sectionChanges, statute, bill.number]);
 
   if (!statute) {
     return (
@@ -42,8 +55,6 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
       </div>
     );
   }
-
-  const sectionChanges = bill.changes.filter((c) => c.sectionId === sectionId);
 
   const handleDecision = (index: number, decision: ChangeDecision) => {
     setDecisions((prev) => ({ ...prev, [index]: decision }));
@@ -59,15 +70,6 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
   ).length;
   const pendingCount = totalChanges - approvedCount - rejectedCount;
   const allReviewed = pendingCount === 0;
-
-  // Build the "after" statute using only approved changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const updatedStatute = useMemo(() => {
-    const approvedChanges = sectionChanges.filter(
-      (_, idx) => decisions[idx] === "approved"
-    );
-    return applyChangesToStatute(statute, approvedChanges, bill.number);
-  }, [decisions, sectionChanges, statute, bill.number]);
 
   return (
     <div>
@@ -188,7 +190,7 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
             variant="before"
           />
           <StatutePanel
-            statute={updatedStatute}
+            statute={updatedStatute!}
             label="After — Approved Changes Only"
             variant="after"
           />
