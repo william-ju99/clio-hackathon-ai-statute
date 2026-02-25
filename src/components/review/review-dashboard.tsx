@@ -31,6 +31,7 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
   const [decisions, setDecisions] = useState<Record<number, ChangeDecision>>(
     {}
   );
+  const [edits, setEdits] = useState<Record<number, string>>({});
 
   const sectionId = bill.sectionsAffected[0];
   const statute = getStatute(sectionId);
@@ -39,14 +40,20 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
     [bill.changes, sectionId]
   );
 
-  // Build the "after" statute using only approved changes
+  // Build the "after" statute using only approved changes (with any edits applied)
   const updatedStatute = useMemo(() => {
     if (!statute) return null;
-    const approvedChanges = sectionChanges.filter(
-      (_, idx) => decisions[idx] === "approved"
-    );
+    const approvedChanges = sectionChanges
+      .map((change, idx) => {
+        if (decisions[idx] !== "approved") return null;
+        if (edits[idx] !== undefined) {
+          return { ...change, newText: edits[idx] };
+        }
+        return change;
+      })
+      .filter((c): c is NonNullable<typeof c> => c !== null);
     return applyChangesToStatute(statute, approvedChanges, bill.number);
-  }, [decisions, sectionChanges, statute, bill.number]);
+  }, [decisions, edits, sectionChanges, statute, bill.number]);
 
   if (!statute) {
     return (
@@ -58,6 +65,10 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
 
   const handleDecision = (index: number, decision: ChangeDecision) => {
     setDecisions((prev) => ({ ...prev, [index]: decision }));
+  };
+
+  const handleEdit = (index: number, text: string) => {
+    setEdits((prev) => ({ ...prev, [index]: text }));
   };
 
   // Tally decisions
@@ -180,7 +191,9 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
         <DiffView
           changes={sectionChanges}
           decisions={decisions}
+          edits={edits}
           onDecision={handleDecision}
+          onEdit={handleEdit}
         />
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
