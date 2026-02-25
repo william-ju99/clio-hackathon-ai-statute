@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, GitCompare, CheckCircle2 } from "lucide-react";
+import { FileText, GitCompare } from "lucide-react";
 import Link from "next/link";
 
 export function HeroSection() {
@@ -48,22 +48,6 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Quick stats */}
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-8">
-          {[
-            { label: "Bills Loaded", value: "3", icon: FileText },
-            { label: "Sections Updated", value: "7", icon: GitCompare },
-            { label: "Changes Approved", value: "12", icon: CheckCircle2 },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <stat.icon className="mx-auto mb-2 h-5 w-5 text-clio-blue" />
-              <div className="text-2xl font-bold text-clio-navy">
-                {stat.value}
-              </div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

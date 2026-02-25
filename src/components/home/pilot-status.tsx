@@ -20,9 +20,6 @@ export function PilotStatus() {
                     <h3 className="font-semibold text-clio-navy">
                       Phase A: Data Extraction
                     </h3>
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                      In Progress
-                    </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Scraping and parsing session law PDFs and current statute
@@ -41,9 +38,6 @@ export function PilotStatus() {
                     <h3 className="font-semibold text-clio-navy">
                       Phase B: LLM Editor Prompting
                     </h3>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      Planned
-                    </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Providing the LLM with current law and session law changes
@@ -62,9 +56,6 @@ export function PilotStatus() {
                     <h3 className="font-semibold text-clio-navy">
                       Phase C: Integration
                     </h3>
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                      Upcoming
-                    </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Formatting output for vLex/Clio internal database and

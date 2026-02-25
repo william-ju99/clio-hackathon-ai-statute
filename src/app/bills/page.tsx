@@ -1,4 +1,5 @@
 import { Header } from "@/components/layout/header";
+import { BillList } from "@/components/bills/bill-list";
 
 export default function BillsPage() {
   return (
@@ -9,11 +10,9 @@ export default function BillsPage() {
           Colorado Bills
         </h1>
         <p className="mb-8 text-muted-foreground">
-          Select a 2025 Colorado bill to begin the codification process.
+          Select a 2025 Colorado bill to view the AI-generated statute changes.
         </p>
-        <div className="rounded-lg border bg-muted/30 p-12 text-center text-muted-foreground">
-          Bill selection interface will be implemented in Step 2.
-        </div>
+        <BillList />
       </main>
     </div>
   );

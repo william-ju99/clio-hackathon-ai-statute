@@ -61,11 +61,6 @@ export function WorkflowSteps() {
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {step.description}
               </p>
-              {step.status === "coming-soon" && (
-                <span className="mt-3 inline-block rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                  Coming Soon
-                </span>
-              )}
             </div>
           ))}
         </div>
