@@ -1,0 +1,70 @@
+"use client";
+
+import { FileText, GitCompare, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+
+export function HeroSection() {
+  return (
+    <section className="relative overflow-hidden border-b bg-gradient-to-br from-clio-blue-light via-white to-white">
+      {/* Background decoration */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-clio-blue/5 blur-3xl" />
+        <div className="absolute -bottom-20 left-0 h-[400px] w-[400px] rounded-full bg-clio-blue/3 blur-3xl" />
+      </div>
+
+      <div className="container mx-auto px-6 py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mb-4 inline-flex items-center rounded-full border border-clio-blue/20 bg-clio-blue/5 px-4 py-1.5 text-sm font-medium text-clio-blue">
+            <span className="mr-2 inline-block h-2 w-2 rounded-full bg-clio-blue animate-pulse" />
+            Colorado Pilot — 2025
+          </div>
+
+          <h1 className="mb-6 text-4xl font-bold tracking-tight text-clio-navy sm:text-5xl">
+            Automated Statute{" "}
+            <span className="text-clio-blue">Codification</span>
+          </h1>
+
+          <p className="mb-10 text-lg text-muted-foreground leading-relaxed">
+            Transform session law PDFs into updated statute text using AI.
+            Select a Colorado bill, review the AI-generated changes in a
+            side-by-side diff view, and approve or reject each edit.
+          </p>
+
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link
+              href="/bills"
+              className="inline-flex h-11 items-center justify-center rounded-lg bg-clio-blue px-8 text-sm font-medium text-white shadow-sm transition-colors hover:bg-clio-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clio-blue"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Browse Bills
+            </Link>
+            <Link
+              href="/review"
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-input bg-white px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <GitCompare className="mr-2 h-4 w-4" />
+              Review Dashboard
+            </Link>
+          </div>
+        </div>
+
+        {/* Quick stats */}
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-8">
+          {[
+            { label: "Bills Loaded", value: "3", icon: FileText },
+            { label: "Sections Updated", value: "7", icon: GitCompare },
+            { label: "Changes Approved", value: "12", icon: CheckCircle2 },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <stat.icon className="mx-auto mb-2 h-5 w-5 text-clio-blue" />
+              <div className="text-2xl font-bold text-clio-navy">
+                {stat.value}
+              </div>
+              <div className="text-sm text-muted-foreground">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
