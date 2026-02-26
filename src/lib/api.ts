@@ -10,6 +10,7 @@ const API_BASE = "http://localhost:8000";
 
 export interface ProcessResponse {
   billNumber: string;
+  statuteCitation: string;
   sessionLawPdfBase64: string;
   originalStatuteText: string;
   updatedStatuteText: string;
