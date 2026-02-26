@@ -24,7 +24,7 @@ export function PdfPanel({ pdfUrl, label }: PdfPanelProps) {
         {/* PDF Embed — fills viewport height and stays sticky while scrolling */}
         <div className="flex-1 min-h-0">
           <iframe
-            src={`${pdfUrl}#zoom=100`}
+            src={`${pdfUrl}#zoom=90`}
             className="h-full w-full border-0"
             title="Session Law PDF"
           />
