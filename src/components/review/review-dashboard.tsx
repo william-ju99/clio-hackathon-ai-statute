@@ -18,6 +18,7 @@ import {
 } from "@/lib/data";
 import { DiffView, ChangeDecision } from "./diff-view";
 import { StatutePanel } from "./statute-panel";
+import { PdfPanel } from "./pdf-panel";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "diff" | "side-by-side";
@@ -196,12 +197,22 @@ export function ReviewDashboard({ bill }: ReviewDashboardProps) {
           onEdit={handleEdit}
         />
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <StatutePanel
             statute={statute}
             label="Before — Current Law"
             variant="before"
           />
+          {bill.sessionLawPdf ? (
+            <PdfPanel
+              pdfUrl={bill.sessionLawPdf}
+              label="Session Law — Source PDF"
+            />
+          ) : (
+            <div className="flex items-center justify-center rounded-lg border bg-muted/20 p-8 text-sm text-muted-foreground">
+              No session law PDF available
+            </div>
+          )}
           <StatutePanel
             statute={updatedStatute!}
             label="After — Approved Changes Only"
