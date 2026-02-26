@@ -54,12 +54,29 @@ export function PilotStatus() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-clio-navy">
-                      Phase C: Integration
+                      Phase C: Review Dashboard
+                    </h3>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    An interactive review interface where editors can inspect each
+                    AI-generated change side by side with the source session law.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Phase D */}
+            <div className="rounded-lg border bg-white p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-clio-navy">
+                      Phase D: Integration
                     </h3>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Formatting output for vLex/Clio internal database and
-                    generating clean, redline, and official data set versions for
+                    generating clean  data set versions for
                     republishers.
                   </p>
                 </div>
@@ -71,7 +88,7 @@ export function PilotStatus() {
           <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
             <ExternalLink className="h-4 w-4" />
             <span>
-              Built by the Clio AI Statutes Hackathon Team — Colorado 2025 Pilot
+              Built by the Clio AI Statutes Hackathon Team
             </span>
           </div>
         </div>

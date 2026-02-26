@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, GitCompare } from "lucide-react";
+import { FileText } from "lucide-react";
 import Link from "next/link";
 
 export function HeroSection() {
@@ -37,13 +37,6 @@ export function HeroSection() {
             >
               <FileText className="mr-2 h-4 w-4" />
               Browse Bills
-            </Link>
-            <Link
-              href="/review"
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-input bg-white px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <GitCompare className="mr-2 h-4 w-4" />
-              Review Dashboard
             </Link>
           </div>
         </div>

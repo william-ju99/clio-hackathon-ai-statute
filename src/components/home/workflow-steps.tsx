@@ -1,6 +1,6 @@
 "use client";
 
-import { FileSearch, Cpu, Eye, CheckSquare } from "lucide-react";
+import { FileSearch, Cpu, Eye, ClipboardCheck, CheckSquare } from "lucide-react";
 
 const steps = [
   {
@@ -25,10 +25,17 @@ const steps = [
     status: "ready" as const,
   },
   {
-    icon: CheckSquare,
-    title: "4. Approve / Reject",
+    icon: ClipboardCheck,
+    title: "4. Review Dashboard",
     description:
-      "Approve or reject each change. Shift from manual editing to final review — the human remains in the loop as the quality gatekeeper.",
+      "Editors approve, reject, or manually edit each AI-generated change. The human stays in the loop as the quality gatekeeper.",
+    status: "ready" as const,
+  },
+  {
+    icon: CheckSquare,
+    title: "5. Integration",
+    description:
+      "Finalized changes are formatted for the vLex/Clio database and exported as clean data set versions.",
     status: "coming-soon" as const,
   },
 ];
@@ -42,11 +49,11 @@ export function WorkflowSteps() {
             Pilot Workflow
           </h2>
           <p className="text-muted-foreground">
-            Four steps from session law to codified statute
+            Five steps from session law to codified statute
           </p>
         </div>
 
-        <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {steps.map((step) => (
             <div
               key={step.title}
