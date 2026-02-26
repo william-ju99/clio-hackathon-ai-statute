@@ -1,14 +1,34 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { base64PdfToUrl } from "@/lib/api";
+
 interface PdfPanelProps {
-  pdfUrl: string;
+  /** Either a URL path (e.g. "/foo.pdf") or a raw base64 string */
+  pdfUrl?: string;
+  pdfBase64?: string;
   label: string;
 }
 
-export function PdfPanel({ pdfUrl, label }: PdfPanelProps) {
+export function PdfPanel({ pdfUrl, pdfBase64, label }: PdfPanelProps) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pdfBase64) {
+      const url = base64PdfToUrl(pdfBase64);
+      setBlobUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [pdfBase64]);
+
+  const src = blobUrl ?? pdfUrl;
+
   return (
     <div className="sticky top-20 self-start">
-      <div className="flex flex-col rounded-lg border bg-white shadow-sm overflow-hidden" style={{ height: "calc(100vh - 8rem)" }}>
+      <div
+        className="flex flex-col rounded-lg border bg-white shadow-sm overflow-hidden"
+        style={{ height: "calc(100vh - 8rem)" }}
+      >
         {/* Header */}
         <div className="shrink-0 border-b bg-muted/30 px-4 py-3">
           <div className="flex items-center justify-between">
@@ -21,13 +41,19 @@ export function PdfPanel({ pdfUrl, label }: PdfPanelProps) {
           </div>
         </div>
 
-        {/* PDF Embed — fills viewport height and stays sticky while scrolling */}
+        {/* PDF Embed */}
         <div className="flex-1 min-h-0">
-          <iframe
-            src={`${pdfUrl}#zoom=90`}
-            className="h-full w-full border-0"
-            title="Session Law PDF"
-          />
+          {src ? (
+            <iframe
+              src={`${src}#zoom=90`}
+              className="h-full w-full border-0"
+              title="Session Law PDF"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No PDF available
+            </div>
+          )}
         </div>
       </div>
     </div>
