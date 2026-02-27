@@ -125,6 +125,7 @@ function TextPanel({
 export function ReviewDashboard({ data }: ReviewDashboardProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("diff");
   const [decisions, setDecisions] = useState<Record<number, ParagraphDecision>>({});
+  const [edits, setEdits] = useState<Record<number, string>>({});
   const [highlightApprovedInAfter, setHighlightApprovedInAfter] = useState(false);
 
   // Strip vLex boilerplate once, share across all views
@@ -135,11 +136,16 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
     setDecisions((prev) => ({ ...prev, [index]: decision }));
   };
 
+  const handleEdit = (index: number, text: string) => {
+    setEdits((prev) => ({ ...prev, [index]: text }));
+  };
+
   const handleDownloadXml = useCallback(() => {
     const resolved = getResolvedStatuteText(
       originalText,
       updatedText,
-      decisions
+      decisions,
+      edits
     );
     const xml = buildStatuteXml(data.billNumber, resolved);
     const blob = new Blob([xml], { type: "application/xml" });
@@ -149,7 +155,7 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
     a.download = `${data.billNumber.replace(/\s+/g, "-")}-statute.xml`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [data.billNumber, originalText, updatedText, decisions]);
+  }, [data.billNumber, originalText, updatedText, decisions, edits]);
 
   return (
     <div>
@@ -247,6 +253,8 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
               updatedText={updatedText}
               decisions={decisions}
               onDecision={handleDecision}
+              edits={edits}
+              onEdit={handleEdit}
             />
           </div>
         </div>
@@ -306,6 +314,7 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
                 originalText={originalText}
                 updatedText={updatedText}
                 decisions={decisions}
+                edits={edits}
                 highlightApprovedChanges={highlightApprovedInAfter}
               />
             </div>

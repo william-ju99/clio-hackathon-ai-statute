@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, Fragment, type ReactNode } from "react";
-import { Check, X, RotateCcw } from "lucide-react";
+import { useMemo, Fragment, useState, type ReactNode } from "react";
+import { Check, X, Pencil } from "lucide-react";
 import { computeWordDiff, DiffSegment } from "@/lib/diff";
 import { cn } from "@/lib/utils";
 
@@ -10,9 +10,12 @@ export type ParagraphDecision = "approved" | "rejected" | null;
 interface TextDiffViewProps {
   originalText: string;
   updatedText: string;
-  /** When provided, shows Approve/Reject/Undo per changed paragraph */
+  /** When provided, shows Approve/Reject/Edit per changed paragraph */
   decisions?: Record<number, ParagraphDecision>;
   onDecision?: (index: number, decision: ParagraphDecision) => void;
+  /** Custom edited text per paragraph (overrides updated when set) */
+  edits?: Record<number, string>;
+  onEdit?: (index: number, text: string) => void;
 }
 
 function DiffSegments({ segments }: { segments: DiffSegment[] }) {
@@ -144,12 +147,13 @@ function alignParagraphs(
 
 /**
  * Compute the resolved statute text after applying reviewer decisions.
- * Approved changes use updated text; rejected use original; pending use original.
+ * Approved changes use updated text (or edits when provided); rejected use original; pending use original.
  */
 export function getResolvedStatuteText(
   originalText: string,
   updatedText: string,
-  decisions: Record<number, ParagraphDecision>
+  decisions: Record<number, ParagraphDecision>,
+  edits?: Record<number, string>
 ): string {
   const origParagraphs = splitParagraphs(originalText);
   const updatedParagraphs = splitParagraphs(updatedText);
@@ -159,6 +163,7 @@ export function getResolvedStatuteText(
   for (let idx = 0; idx < pairs.length; idx++) {
     const [orig, updated] = pairs[idx];
     const decision = decisions[idx] ?? null;
+    const edited = edits?.[idx];
     const hasChange = orig !== updated;
 
     if (!hasChange) {
@@ -172,11 +177,12 @@ export function getResolvedStatuteText(
     }
     if (decision === "approved") {
       if (orig && !updated) continue; // approved removal: omit
-      paragraphs.push(updated!);
+      paragraphs.push(edited ?? updated!);
       continue;
     }
-    // Pending: keep original
-    paragraphs.push(orig ?? updated!);
+    // Pending: only show original content; omit pending additions until approved
+    if (!orig && updated) continue; // pending addition: omit
+    paragraphs.push(orig!);
   }
   return paragraphs.join("\n\n");
 }
@@ -191,11 +197,13 @@ export function ResolvedStatuteView({
   originalText,
   updatedText,
   decisions,
+  edits,
   highlightApprovedChanges,
 }: {
   originalText: string;
   updatedText: string;
   decisions: Record<number, ParagraphDecision>;
+  edits?: Record<number, string>;
   highlightApprovedChanges: boolean;
 }) {
   const pairs = useMemo(() => {
@@ -210,6 +218,8 @@ export function ResolvedStatuteView({
     for (let idx = 0; idx < pairs.length; idx++) {
       const [orig, updated] = pairs[idx];
       const decision = decisions[idx] ?? null;
+      const edited = edits?.[idx];
+      const effectiveUpdated = edited ?? updated;
       const hasChange = orig !== updated;
 
       let resolvedText: string;
@@ -225,17 +235,19 @@ export function ResolvedStatuteView({
         resolvedText = orig!;
       } else if (decision === "approved") {
         if (orig && !updated) continue; // omit approved removal
-        resolvedText = updated!;
+        resolvedText = effectiveUpdated!;
         showHighlight = highlightApprovedChanges;
-        if (orig && updated) {
+        if (orig && effectiveUpdated) {
           type = "modified";
           origForDiff = orig;
-          updatedForDiff = updated;
-        } else if (!orig && updated) {
+          updatedForDiff = effectiveUpdated;
+        } else if (!orig && effectiveUpdated) {
           type = "added";
         }
       } else {
-        resolvedText = orig ?? updated!;
+        // Pending: only show original content; omit pending additions
+        if (!orig && updated) continue; // pending addition: omit
+        resolvedText = orig!;
       }
 
       if (showHighlight && type === "modified" && origForDiff && updatedForDiff) {
@@ -269,7 +281,7 @@ export function ResolvedStatuteView({
       }
     }
     return result;
-  }, [pairs, decisions, highlightApprovedChanges]);
+  }, [pairs, decisions, edits, highlightApprovedChanges]);
 
   return (
     <div className="space-y-1">
@@ -280,20 +292,62 @@ export function ResolvedStatuteView({
   );
 }
 
-function SmallUndoButton({
-  onUndo,
+function SmallEditButton({
+  onEdit,
 }: {
-  onUndo: () => void;
+  onEdit: () => void;
 }) {
   return (
     <button
-      onClick={onUndo}
+      onClick={onEdit}
       className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
       type="button"
     >
-      <RotateCcw className="h-3 w-3" />
-      Undo
+      <Pencil className="h-3 w-3" />
+      Edit
     </button>
+  );
+}
+
+function EditPanel({
+  initialText,
+  onSave,
+  onCancel,
+}: {
+  initialText: string;
+  onSave: (text: string) => void;
+  onCancel: () => void;
+}) {
+  const [text, setText] = useState(initialText);
+
+  return (
+    <div className="border-t border-amber-200/60 pt-3 mt-3">
+      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        Edit text
+      </label>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={5}
+        className="w-full rounded-md border bg-white px-3 py-2 text-sm leading-relaxed text-foreground focus:border-clio-blue focus:outline-none focus:ring-1 focus:ring-clio-blue"
+      />
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          onClick={() => onSave(text)}
+          className="text-sm font-medium text-clio-blue hover:text-clio-blue-dark"
+        >
+          Save & approve
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -302,7 +356,11 @@ export function TextDiffView({
   updatedText,
   decisions = {},
   onDecision,
+  edits = {},
+  onEdit,
 }: TextDiffViewProps) {
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+
   const pairs = useMemo(() => {
     const origParagraphs = splitParagraphs(originalText);
     const updatedParagraphs = splitParagraphs(updatedText);
@@ -335,9 +393,12 @@ export function TextDiffView({
         }
 
         const decided = decision !== null;
-        const undoButton = showDecisions && decided && (
-          <SmallUndoButton onUndo={() => onDecision(idx, null)} />
+        const effectiveUpdated = edits[idx] ?? updated;
+        const editButton = showDecisions && decided && (
+          <SmallEditButton onEdit={() => onDecision(idx, null)} />
         );
+        const isEditing = editingIdx === idx;
+        const canEdit = onEdit != null && (orig && updated || (!orig && updated));
 
         // Rejected: change does not show — show original (or nothing for added) + Undo
         if (decision === "rejected") {
@@ -345,7 +406,7 @@ export function TextDiffView({
             // Rejected addition: don't show the added text; just Undo
             return (
               <div key={idx} className="flex items-center gap-2 px-4 py-2">
-                <span className="shrink-0">{undoButton}</span>
+                <span className="shrink-0">{editButton}</span>
               </div>
             );
           }
@@ -355,15 +416,15 @@ export function TextDiffView({
               <div className={cn("min-w-0 flex-1", paragraphClass)}>
                 {orig}
               </div>
-              <span className="shrink-0 pt-2">{undoButton}</span>
+              <span className="shrink-0 pt-2">{editButton}</span>
             </div>
           );
         }
 
         // Approved: show content with inline highlight on what was added/removed (not the whole paragraph)
         if (decided && decision === "approved") {
-          if (orig && updated) {
-            const diff = computeWordDiff(orig, updated);
+          if (orig && effectiveUpdated) {
+            const diff = computeWordDiff(orig, effectiveUpdated);
             return (
               <div key={idx} className="flex items-start gap-2">
                 <div
@@ -374,11 +435,11 @@ export function TextDiffView({
                 >
                   <DiffSegments segments={diff} />
                 </div>
-                <span className="shrink-0 pt-2">{undoButton}</span>
+                <span className="shrink-0 pt-2">{editButton}</span>
               </div>
             );
           }
-          if (!orig && updated) {
+          if (!orig && effectiveUpdated) {
             return (
               <div key={idx} className="flex items-start gap-2">
                 <div
@@ -387,9 +448,9 @@ export function TextDiffView({
                     paragraphClass
                   )}
                 >
-                  <span className="bg-green-100 text-green-800">{updated}</span>
+                  <span className="bg-green-100 text-green-800">{effectiveUpdated}</span>
                 </div>
-                <span className="shrink-0 pt-2">{undoButton}</span>
+                <span className="shrink-0 pt-2">{editButton}</span>
               </div>
             );
           }
@@ -406,14 +467,14 @@ export function TextDiffView({
                   {orig}
                 </span>
               </div>
-              <span className="shrink-0 pt-2">{undoButton}</span>
+              <span className="shrink-0 pt-2">{editButton}</span>
             </div>
           );
         }
 
-        // Pending: show box with diff and Approve/Reject
+        // Pending: show box with diff and Approve/Reject/Edit
         if (orig && updated) {
-          const diff = computeWordDiff(orig, updated);
+          const diff = computeWordDiff(orig, effectiveUpdated);
           return (
             <div
               key={idx}
@@ -427,22 +488,43 @@ export function TextDiffView({
               <p className="text-sm leading-relaxed">
                 <DiffSegments segments={diff} />
               </p>
-              <div className="mt-3 flex gap-3 border-t border-amber-200/60 pt-3">
-                <button
-                  onClick={() => onDecision?.(idx, "approved")}
-                  className="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
-                >
-                  <Check className="h-3.5 w-3.5" />
-                  Approve
-                </button>
-                <button
-                  onClick={() => onDecision?.(idx, "rejected")}
-                  className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Reject
-                </button>
-              </div>
+              {isEditing ? (
+                <EditPanel
+                  initialText={effectiveUpdated}
+                  onSave={(text) => {
+                    onEdit?.(idx, text);
+                    onDecision?.(idx, "approved");
+                    setEditingIdx(null);
+                  }}
+                  onCancel={() => setEditingIdx(null)}
+                />
+              ) : (
+                <div className="mt-3 flex flex-wrap gap-3 border-t border-amber-200/60 pt-3">
+                  <button
+                    onClick={() => onDecision?.(idx, "approved")}
+                    className="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => onDecision?.(idx, "rejected")}
+                    className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Reject
+                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={() => setEditingIdx(idx)}
+                      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         }
@@ -458,28 +540,49 @@ export function TextDiffView({
                   Added
                 </span>
               </div>
-              <p className="text-sm leading-relaxed text-green-900">{updated}</p>
-              <div className="mt-3 flex gap-3 border-t border-green-200/60 pt-3">
-                <button
-                  onClick={() => onDecision?.(idx, "approved")}
-                  className="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
-                >
-                  <Check className="h-3.5 w-3.5" />
-                  Approve
-                </button>
-                <button
-                  onClick={() => onDecision?.(idx, "rejected")}
-                  className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Reject
-                </button>
-              </div>
+              <p className="text-sm leading-relaxed text-green-900">{effectiveUpdated}</p>
+              {isEditing ? (
+                <EditPanel
+                  initialText={effectiveUpdated}
+                  onSave={(text) => {
+                    onEdit?.(idx, text);
+                    onDecision?.(idx, "approved");
+                    setEditingIdx(null);
+                  }}
+                  onCancel={() => setEditingIdx(null)}
+                />
+              ) : (
+                <div className="mt-3 flex flex-wrap gap-3 border-t border-green-200/60 pt-3">
+                  <button
+                    onClick={() => onDecision?.(idx, "approved")}
+                    className="inline-flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => onDecision?.(idx, "rejected")}
+                    className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-800"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Reject
+                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={() => setEditingIdx(idx)}
+                      className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         }
 
-        // Pending removed
+        // Pending removed (no Edit — nothing to edit)
         return (
           <div
             key={idx}
