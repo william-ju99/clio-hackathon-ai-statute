@@ -36,7 +36,7 @@ export function HeroSection() {
               className="inline-flex h-11 items-center justify-center rounded-lg bg-clio-blue px-8 text-sm font-medium text-white shadow-sm transition-colors hover:bg-clio-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clio-blue"
             >
               <FileText className="mr-2 h-4 w-4" />
-              Browse Bills
+              Codify a Session Law
             </Link>
           </div>
         </div>
