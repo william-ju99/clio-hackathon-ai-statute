@@ -58,8 +58,24 @@ export function cleanStatuteText(raw: string): string {
   let text = kept.join(" ").replace(/\s+/g, " ").trim();
 
   // Step 2b – normalise common PDF-vs-AI formatting discrepancies
+
+  //   • Normalise curly / smart quotes to plain ASCII "
+  text = text.replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"');
+
+  //   • Remove space *inside* quotation marks (between a quote and a word char):
+  //       `" Assisted` → `"Assisted`     (opening quote, space after)
+  //       `residence "` → `residence"`   (closing quote, space before)
+  //     This is intentionally narrow so we don't eat spaces between separate
+  //     quoted terms, e.g.  `"residence" or "facility"` stays intact.
+  text = text.replace(/"(\s+)(\w)/g, '"$2');
+  text = text.replace(/(\w)(\s+)"/g, '$1"');
+
+  //   • Remove stray spaces before sentence-ending punctuation:
+  //     PDF sometimes produces `) .` or `) ,` — collapse the space.
+  text = text.replace(/\)\s+\./g, ").");
+  text = text.replace(/\)\s+,/g, "),");
+
   //   • Ensure a space before § (PDF often produces "447,§" instead of "447, §")
-  //   • Normalise §§ spacing too
   text = text.replace(/,§/g, ", §");
   text = text.replace(/(\S)§/g, "$1 §");
   //   • Normalise dash variants (em/en dash → hyphen in bill references)
@@ -70,24 +86,30 @@ export function cleanStatuteText(raw: string): string {
 
   // Step 3 – insert paragraph breaks before subsection / sub-item markers.
   //
-  //   Numbered subsections  (1), (1.3), (10.5)  — only when preceded by
-  //   sentence-ending punctuation (. : ;) to avoid splitting references
-  //   like "section 26-11.5-103 (2)".
+  //   Numbered subsections  (1), (1.3), (10.5)  — split when preceded by
+  //   sentence-ending punctuation (. : ;) OR by a closing quote (")
+  //   to avoid splitting inline references like "section 26-11.5-103 (2)".
   //
   //   Lettered sub-items  (a), (b), (c)  — more aggressively because they
   //   almost always start a new logical item in Colorado statutes.
   //
-  //   Structural markers  History:, Cross Reference:, Note:
+  //   Structural markers  History:, Cross Reference:, Note:, SECTION N.
 
-  // Numbered: split when preceded by . : ;
-  text = text.replace(/([.:;])\s+(?=\(\d[\d.]*\)\s)/g, "$1\n\n");
+  // Numbered: split when preceded by . : ; or closing "
+  text = text.replace(/([.:;""])\s+(?=\(\d[\d.]*\)\s)/g, "$1\n\n");
 
   // Lettered: split whenever preceded by whitespace (these are almost never
   // used as inline references — they are sub-item markers)
   text = text.replace(/\s+(?=\([a-z]\)\s)/gi, "\n\n");
 
+  // "SECTION N." markers (bill structure)
+  text = text.replace(/\s+(?=SECTION\s+\d+\.)/g, "\n\n");
+
   // Structural markers
-  text = text.replace(/([.:;])\s+(?=(?:History|Cross Reference|Note):)/g, "$1\n\n");
+  text = text.replace(
+    /([.:;])\s+(?=(?:History|Cross Reference|Note|Source):)/g,
+    "$1\n\n"
+  );
 
   // Step 4 – normalise and return
   return text
