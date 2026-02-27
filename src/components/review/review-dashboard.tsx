@@ -15,7 +15,6 @@ import {
   TextDiffView,
   getResolvedStatuteText,
   ResolvedStatuteView,
-  HighlightedAfterView,
   type ParagraphDecision,
 } from "./text-diff-view";
 import { PdfPanel } from "./pdf-panel";
@@ -279,25 +278,13 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
             <div className="sticky top-0 z-10 flex shrink-0 flex-col gap-2 border-b bg-white px-4 py-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">
-                  After — Updated Statute
+                  After — Updated Statute (finalized)
                 </span>
                 <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                  Updated
+                  Approved changes applied
                 </span>
               </div>
               <div className="flex items-center gap-1 rounded-md border border-muted/50 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setHighlightApprovedInAfter(true)}
-                  className={cn(
-                    "rounded px-2 py-1 text-xs font-medium transition-colors",
-                    highlightApprovedInAfter
-                      ? "bg-muted text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Highlight changes
-                </button>
                 <button
                   type="button"
                   onClick={() => setHighlightApprovedInAfter(false)}
@@ -310,19 +297,28 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
                 >
                   Plain text
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setHighlightApprovedInAfter(true)}
+                  className={cn(
+                    "rounded px-2 py-1 text-xs font-medium transition-colors",
+                    highlightApprovedInAfter
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Highlight approved changes
+                </button>
               </div>
             </div>
             <div className="flex-1 overflow-auto px-4 py-4">
-              {highlightApprovedInAfter ? (
-                <HighlightedAfterView
-                  originalText={originalText}
-                  updatedText={updatedText}
-                />
-              ) : (
-                <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {updatedText}
-                </div>
-              )}
+              <ResolvedStatuteView
+                originalText={originalText}
+                updatedText={updatedText}
+                decisions={decisions}
+                edits={edits}
+                highlightApprovedChanges={highlightApprovedInAfter}
+              />
             </div>
           </div>
         </div>
