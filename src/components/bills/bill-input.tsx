@@ -20,7 +20,7 @@ export function BillInput() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-xl">
+    <form onSubmit={handleSubmit} className="w-full">
       <div className="rounded-xl border bg-white p-8 shadow-sm">
         <label
           htmlFor="bill-number"
