@@ -13,11 +13,11 @@ export function Header() {
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-semibold leading-tight text-clio-navy">
-              Clio AI Statutes
+              Clio Harmonize
             </span>
-            <span className="text-xs text-muted-foreground">
-              Colorado Pilot Workflow
-            </span>
+            {/* <span className="text-xs text-muted-foreground">
+              Harmonize Colorado Statutes
+            </span> */}
           </div>
         </Link>
 
