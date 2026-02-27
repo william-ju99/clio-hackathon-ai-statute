@@ -187,6 +187,68 @@ export function getResolvedStatuteText(
   return paragraphs.join("\n\n");
 }
 
+/**
+ * Shows the updated text with all changes highlighted inline (green for
+ * additions, red strikethrough for removals). No approve/reject workflow —
+ * just a clean read-only view of what changed.
+ */
+export function HighlightedAfterView({
+  originalText,
+  updatedText,
+}: {
+  originalText: string;
+  updatedText: string;
+}) {
+  const pairs = useMemo(() => {
+    const origParagraphs = splitParagraphs(originalText);
+    const updatedParagraphs = splitParagraphs(updatedText);
+    return alignParagraphs(origParagraphs, updatedParagraphs);
+  }, [originalText, updatedText]);
+
+  return (
+    <div className="space-y-1">
+      {pairs.map(([orig, updated], idx) => {
+        // Unchanged paragraph
+        if (orig === updated) {
+          return (
+            <div key={idx} className="px-4 py-2 text-sm leading-relaxed text-foreground">
+              {orig}
+            </div>
+          );
+        }
+
+        // Modified paragraph — show word-level diff
+        if (orig && updated) {
+          const diff = computeWordDiff(orig, updated);
+          return (
+            <div key={idx} className="px-4 py-2 text-sm leading-relaxed text-foreground">
+              <DiffSegments segments={diff} />
+            </div>
+          );
+        }
+
+        // Added paragraph (only in updated)
+        if (!orig && updated) {
+          return (
+            <div key={idx} className="px-4 py-2 text-sm leading-relaxed">
+              <span className="bg-green-100 text-green-800">{updated}</span>
+            </div>
+          );
+        }
+
+        // Removed paragraph (only in original) — show as struck-through
+        return (
+          <div key={idx} className="px-4 py-2 text-sm leading-relaxed">
+            <span className="bg-red-100 text-red-800 line-through decoration-red-400/60">
+              {orig}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 const paragraphClass = "px-4 py-2 text-sm leading-relaxed text-foreground";
 
 /**
