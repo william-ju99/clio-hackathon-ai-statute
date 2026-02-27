@@ -250,7 +250,7 @@ export function ReviewDashboard({ data }: ReviewDashboardProps) {
               Download as XML (approved changes)
             </button>
           </div>
-          <div className="p-4">
+          <div className="py-4">
             <TextDiffView
               originalText={originalText}
               updatedText={updatedText}
